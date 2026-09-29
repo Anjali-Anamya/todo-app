@@ -30,4 +30,6 @@ jobs:
 
       - name: Run backend tests
         working-directory: backend
+        env:
+          SQLITE_DB_LOCATION: /tmp/todos/todo.db
         run: npm test
