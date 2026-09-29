@@ -5,13 +5,15 @@ on:
     branches:
       - main
       - devops
+
   pull_request:
     branches:
       - main
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: Test and Security Scan
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -33,3 +35,27 @@ jobs:
         env:
           SQLITE_DB_LOCATION: /tmp/todos/todo.db
         run: npm test
+
+      - name: Filesystem security scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --target final \
+            -t todo-app:${{ github.sha }} .
+
+      - name: Scan Docker image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: todo-app:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: 1
