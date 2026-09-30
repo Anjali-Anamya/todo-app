@@ -94,7 +94,10 @@ COPY .npmrc .
 # Install production dependencies only
 RUN npm ci --omit=dev \
     && npm cache clean --force \
-    && rm -f .npmrc
+    && rm -f .npmrc \
+    && rm -rf /usr/local/lib/node_modules/npm \
+              /usr/local/bin/npm \
+              /usr/local/bin/npx
 
 # Copy the native sqlite3 build
 COPY --from=sqlite3-build \
